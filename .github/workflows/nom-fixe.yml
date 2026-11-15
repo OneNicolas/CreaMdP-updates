@@ -1,0 +1,31 @@
+name: Fichier au nom fixe
+
+# Le site scopi.fr télécharge toujours « la dernière version » sous un nom qui ne change pas.
+# À chaque version publiée, ce flux recopie donc le fichier numéroté sous ce nom fixe :
+# il n'y a rien de plus à faire que de publier la version comme d'habitude.
+
+on:
+  release:
+    # « edited » : rattrape une version publiée avant que son fichier n'y soit joint.
+    types: [published, edited]
+
+permissions:
+  contents: write
+
+env:
+  MOTIF: 'GenerateurScopi-*.exe'
+  NOM_FIXE: 'GenerateurScopi.exe'
+
+jobs:
+  nom-fixe:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Recopier le fichier de la version sous son nom fixe
+        run: |
+          gh release download "$VERSION" --pattern "$MOTIF" --dir source
+          cp "$(ls source/* | head -n 1)" "$NOM_FIXE"
+          gh release upload "$VERSION" "$NOM_FIXE" --clobber
