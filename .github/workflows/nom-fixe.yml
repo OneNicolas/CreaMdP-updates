@@ -6,8 +6,14 @@ name: Fichier au nom fixe
 
 on:
   release:
-    # « edited » : rattrape une version publiée avant que son fichier n'y soit joint.
-    types: [published, edited]
+    types: [published]
+  # Lancement à la main (onglet Actions, « Run workflow ») : pour une version publiée avant que son fichier
+  # n'y soit joint, ou dont le fichier a été remplacé après coup.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Étiquette de la version à traiter, par exemple v1.2.0'
+        required: true
 
 permissions:
   contents: write
@@ -22,7 +28,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      VERSION: ${{ github.event.release.tag_name }}
+      VERSION: ${{ github.event.release.tag_name || inputs.version }}
     steps:
       - name: Recopier le fichier de la version sous son nom fixe
         run: |
